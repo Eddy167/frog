@@ -49,25 +49,6 @@ int main()
         cout << "\n";
         cout << North << "Type I to move northwards.\n";
         cin >> I;
-
-        for (int i = 4; i > 0; i++) { //netinka
-            for (int j = 4; j > 0; j++) {
-
-        for (frog = )
-                cout << "You have moved north, time has passed.\n";
-                break;
-            }
-        }
-
-            for (int i = 0; i < 9; i++) {
-                for (int j = 0; j < 9; j++) {
-                    cout << yard[i][j];
-                    if (j == 8)
-                    {
-                        cout << "\n";
-                    }
-                }
-            }
         
  
         --energy;
