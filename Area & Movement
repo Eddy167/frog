@@ -1,0 +1,79 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+int main()
+{
+
+    bool yard[9][9] =
+    {
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    };
+
+
+    int frog = yard[4][4] = true;
+
+    cout << "Visualising Area\n";
+    cout << "Congratulations! You are Frog, the number one.\n\n";
+
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            cout << yard[i][j];
+            if (j == 8)
+            {
+                cout << "\n";
+            }
+        }
+    }
+
+    int energy = 10;
+    int numberOfTurns = 0;
+    string North = "It is windy, the sun is on your right.\n";
+    string East = "It is warm, you are facing sun.\n";
+    string South = "It is windy, the sun is on your left.\n";
+    string West = "It is cold, you are turned from the sun.\n";
+    char I, J, K, L;
+    string move;
+
+    while (energy > 0) 
+    {
+        
+        cout << "\n";
+        cout << North << "Type I to move northwards.\n";
+        cin >> I;
+
+        for (int i = 4; i > 0; i++) { //netinka
+            for (int j = 4; j > 0; j++) {
+
+        for (frog = )
+                cout << "You have moved north, time has passed.\n";
+                break;
+            }
+        }
+
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    cout << yard[i][j];
+                    if (j == 8)
+                    {
+                        cout << "\n";
+                    }
+                }
+            }
+        
+ 
+        --energy;
+        ++numberOfTurns;
+    }
+
+
+    return 0;
+}
