@@ -1,0 +1,182 @@
+#include <iostream>
+#include <string>
+#include <cstdlib>
+#include <ctime>
+using namespace std;
+
+void drawMap(bool yard[9][9]) {
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            cout << yard[i][j]; 
+            if (j < 8){
+                cout << " "; 
+                }
+        }
+        cout << "\n"; 
+    }
+}
+
+void moveNorth(bool yard[9][9], int& x, int& y, int& energy, int& numberOfTurns){
+    yard[x][y] = false;
+    x = x - 1;
+    yard[x][y] = true;
+    cout << "\nIt is windy, the sun is on your right. Time passed, you have used energy.\n";
+    --energy;
+    ++numberOfTurns;
+}
+void moveEast(bool yard[9][9], int& x, int& y, int& energy, int& numberOfTurns) {
+    yard[x][y] = false;
+    y = y + 1;
+    yard[x][y] = true;
+    cout << "\nIt is warm, you are facing sun. Time passed, you have used energy.\n";
+    --energy;
+    ++numberOfTurns;
+}
+void moveWest(bool yard[9][9], int& x, int& y, int& energy, int& numberOfTurns) {
+    yard[x][y] = false;
+    y = y - 1;
+    yard[x][y] = true;
+    cout << "\nIt is cold, you are turned from the sun. Time passed, you have used energy.\n";
+    --energy;
+    ++numberOfTurns;
+}
+void moveSouth(bool yard[9][9], int& x, int& y, int& energy, int& numberOfTurns) {
+    yard[x][y] = false;
+    x = x + 1;
+    yard[x][y] = true;
+    cout << "\nIt is windy, the sun is on your left. Time passed, you have used energy.\n";
+    --energy;
+    ++numberOfTurns;
+}
+
+void bugGenerator(bool yard[9][9], int& x, int& y, int& bug) {
+    x = rand() % 9;
+    y = rand() % 9;
+    bug = yard[x][y] = true;
+}
+
+
+int main()
+{
+
+    bool yard[9][9] =
+    {
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+      { 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    };
+
+    int positionX = 4;
+    int positionY = 4;
+    int frog = yard[positionX][positionY] = true;
+
+    srand(static_cast<signed int>(time(0)));
+    int bug_1PositionX, bug_1PositionY, bug1;
+    int bug_2PositionX, bug_2PositionY, bug2;
+    int bug_3PositionX, bug_3PositionY, bug3;
+    bugGenerator(yard, bug_1PositionX, bug_1PositionY, bug1);
+    bugGenerator(yard, bug_2PositionX, bug_2PositionY, bug2);
+    bugGenerator(yard, bug_3PositionX, bug_3PositionY, bug3);
+
+
+    cout << "Visualising Area\n";
+    cout << "Congratulations! You are Frog, the number one, the central one, yes, You!" << "\nBut you are not the only one. Devour other lifeforms like you to continue what you are doing.\n\n";
+
+    drawMap(yard);
+
+    int energy = 8;
+    int numberOfTurns = 0;
+    string North = "It is windy, the sun is on your right.\n";
+    string East = "It is warm, you are facing sun.\n";
+    string South = "It is windy, the sun is on your left.\n";
+    string West = "It is cold, you are turned from the sun.\n";
+    char direction;
+    char B;
+    cout << "\nType I to move northwards.\n";
+    cout << "Type L to move eastwards.\n";
+    cout << "Type J to move westwards.\n";
+    cout << "Type K to move southwards.\n";
+
+    while (energy > 0)
+    {
+        if (bug_1PositionX == positionX && bug_1PositionY == positionY) {
+            cout << "You have devoured another lifeform. Digesting. Time passes.";
+            ++numberOfTurns;
+            energy = energy + 2;
+            cout << "\nEnergy gained!";
+            if (numberOfTurns = numberOfTurns + 2) {
+                bugGenerator(yard, bug_1PositionX, bug_1PositionY, bug1);
+            }
+        }
+
+        if (bug_2PositionX == positionX && bug_2PositionY == positionY) {
+            cout << "You have devoured another lifeform. Digesting. Time passes.";
+            ++numberOfTurns;
+            energy = energy + 2;
+            cout << "\nEnergy gained!";
+            if (numberOfTurns = numberOfTurns + 2) {
+                bugGenerator(yard, bug_2PositionX, bug_2PositionY, bug2);
+            }
+        }
+
+        if (bug_3PositionX == positionX && bug_3PositionY == positionY) {
+            cout << "You have devoured another lifeform. Digesting. Time passes.";
+            ++numberOfTurns;
+            energy = energy + 2;
+            cout << "\nEnergy gained!";
+            if (numberOfTurns = numberOfTurns + 2) {
+                bugGenerator(yard, bug_3PositionX, bug_3PositionY, bug3);
+            }
+        }
+
+        if (positionX != -1 && positionX != 9 && positionY != -1 && positionY != 9) {
+
+            cout << "\nMove?\n";
+            cin >> direction;
+            direction = toupper(direction);
+
+            if (direction == 'I') {
+                moveNorth(yard, positionX, positionY, energy, numberOfTurns);
+                drawMap(yard);
+            }
+
+            if (direction == 'L') {
+                moveEast(yard, positionX, positionY, energy, numberOfTurns);
+                drawMap(yard);
+            }
+
+            if (direction == 'J') {
+                moveWest(yard, positionX, positionY, energy, numberOfTurns);
+                drawMap(yard);
+            }
+
+            if (direction == 'K') {
+                moveSouth(yard, positionX, positionY, energy, numberOfTurns);
+                drawMap(yard);
+            }
+
+            if (energy < 3) {
+                cout << "Your body is weakening, you must eat!\n";
+        }
+
+        }
+        else {
+            energy == 0;
+            cout << "\nYou have arrived at the river." << "\nThe giant vulpture catches you and takes you into the sky!" << "\nYou need to eat more and become more powerful than that tongue - nibbling bird!\n";
+            break;
+        }
+
+
+    }
+    cout << "You have run out of energy. The sweet release of death saves you from this torment.\n";
+    cout << "Total number of turns played: " << numberOfTurns << '\n';
+
+
+    return 0;
+}
