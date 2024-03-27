@@ -1,0 +1,310 @@
+#include <iostream>
+#include <string>
+#include <cstdlib>
+#include <ctime>
+#include <vector>
+using namespace std;
+
+
+void initializeMap(bool** yard, int x, int y) {
+    for (int i = 0; i < x; i++) {
+        for (int j = 0; j < y; j++) {
+            yard[i][j] = false;
+        }
+    }
+}
+void generateMap(bool** &yard, int x, int y) {
+    yard = new bool* [x];
+    for (int i = 0; i < x; i++) {
+        yard[i] = new bool[y];
+    }
+    initializeMap(yard, x, y);
+}
+void drawMap(bool** yard, int x, int y) {
+    for (int i = 0; i < x; i++) {
+        for (int j = 0; j < y; j++) {
+            cout << yard[i][j]; 
+            if (j < y - 1){
+                cout << " "; 
+                }
+        }
+        cout << "\n"; 
+    }
+}
+struct GameMode {
+    int mapX;
+    int mapY;
+    int positionX;
+    int positionY;
+    int bugAmount; 
+    int energy;
+};
+void initializeGameModes(vector<GameMode>& gameMod) {
+    GameMode easyMod = { 9, 9, 4, 4, 3, 7 };
+    GameMode mediumMod = { 15, 15, 7, 7, 9, 9 };
+    GameMode hardMod = { 21, 21, 10, 10, 12, 12 };
+    gameMod.push_back(easyMod);
+    gameMod.push_back(mediumMod);
+    gameMod.push_back(hardMod);
+}
+
+struct Bug {
+    int xBugPosition;
+    int yBugPosition;
+};
+void intializeBugs(bool** yard, vector<Bug>& bugs, int bugAmount, int mapX, int mapY) {
+    srand(static_cast<signed int>(time(0)));
+    bugs.reserve(bugAmount);
+    for (int i = 0; i < bugAmount; i++) {
+        int randX = rand() % mapX;
+        int randY = rand() % mapY;
+        yard[randX][randY] = true;
+        bugs.push_back({ randX, randY });
+    }
+}
+void rewardDevour(int& x, int& y) {
+    cout << "\nYou have devoured another lifeform. Digesting. Time passes.";
+    ++x;
+    cout << "\nEnergy gained!";
+    y += 3;
+}
+void bugGenerator(bool** yard, vector<Bug>& bugs, int x, int y) {
+    int randX = rand() % x;
+    int randY = rand() % y;
+    yard[randX][randY] = true;
+    bugs.push_back({ randX, randY });
+}
+
+void determineFrog(bool** yard, int x, int y) {
+    yard[x][y] = true;
+}
+
+char lastMoveDirection = 'I';
+void updateLastMoveDirection(char direction) {
+    lastMoveDirection = direction;
+}
+void moveNorth(bool** yard, int& x, int& y, int& energy, int& numberOfTurns, int& mapX, int& mapY){
+    if (x > 0) { 
+        yard[x][y] = false;
+        x = x - 1;
+        yard[x][y] = true;
+        cout << "\nIt is windy, the sun is on your right. Time passed, you have used energy.\n";
+        --energy;
+        ++numberOfTurns;
+        updateLastMoveDirection('I');
+    }
+    else {
+        cout << "\nYou cannot move further north. The bird is watching you.";
+        cout << "Try a different direction.\n";
+    }
+    drawMap(yard, mapX, mapY);
+}
+void moveEast(bool** yard, int& x, int& y, int& energy, int& numberOfTurns, int& mapX, int& mapY) {
+    yard[x][y] = false;
+    y = y + 1;
+    yard[x][y] = true;
+    cout << "\nIt is warm, you are facing sun. Time passed, you have used energy.\n";
+    --energy;
+    ++numberOfTurns;
+    updateLastMoveDirection('L');
+    drawMap(yard, mapX, mapY);
+}
+void moveWest(bool** yard, int& x, int& y, int& energy, int& numberOfTurns, int& mapX, int& mapY) {
+    yard[x][y] = false;
+    y = y - 1;
+    yard[x][y] = true;
+    cout << "\nIt is cold, you are turned from the sun. Time passed, you have used energy.\n";
+    --energy;
+    ++numberOfTurns;
+    updateLastMoveDirection('J');
+    drawMap(yard, mapX, mapY);
+}
+void moveSouth(bool** yard, int& x, int& y, int& energy, int& numberOfTurns, int& mapX, int& mapY) {
+    if (x < mapX - 1) {
+    yard[x][y] = false;
+    x = x + 1;
+    yard[x][y] = true;
+    cout << "\nIt is windy, the sun is on your left. Time passed, you have used energy.\n";
+    --energy;
+    ++numberOfTurns;
+    updateLastMoveDirection('K');
+    }
+    else {
+        cout << "\nYou cannot move further south. The bird is watching you. ";
+        cout << "Try a different direction.\n";
+    }
+    drawMap(yard, mapX, mapY);
+}
+void jump(bool** yard, int& positionX, int& positionY, int& energy, int& numberOfTurns, int& mapX, int& mapY) {
+    energy = energy - 2;
+    ++numberOfTurns;
+    switch (lastMoveDirection) {
+        case 'I':
+            if (positionX > 2) {
+                yard[positionX][positionY] = false;
+                positionX = positionX - 3;
+                yard[positionX][positionY] = true;
+                cout << "\nIt is windy, the sun is on your right. Time passed, you have used energy.\n";
+                updateLastMoveDirection('I');
+                }
+                else {
+                    cout << "\nYou cannot jump further north. The bird is watching you.";
+                    cout << " Try a different direction.\n";
+                }
+            break;
+        case 'L':
+            yard[positionX][positionY] = false;
+            positionY = positionY + 3;
+            yard[positionX][positionY] = true;
+            cout << "\nIt is warm, you are facing sun. Time passed, you have used energy.\n";
+            updateLastMoveDirection('L');
+            break;
+        case 'J':
+            yard[positionX][positionY] = false;
+            positionY = positionY - 3;
+            yard[positionX][positionY] = true;
+            cout << "\nIt is cold, you are turned from the sun. Time passed, you have used energy.\n";
+            updateLastMoveDirection('J');
+            break;
+        case 'K':
+            if (positionX < mapX - 2) {
+                yard[positionX][positionY] = false;
+                positionX = positionX + 3;
+                yard[positionX][positionY] = true;
+                cout << "\nIt is windy, the sun is on your left. Time passed, you have used energy.\n";
+                updateLastMoveDirection('K');
+            }
+            else {
+                cout << "\nYou cannot jump further south. The bird is watching you. ";
+                cout << "Try a different direction.\n";
+            }
+            break;
+        }
+}
+bool tip = true;
+void jumpTip() {
+    cout << "Woah, what a jump! By jumping you conserve your energy and can cover great distances,\n but keep in mind that jumping requires much more navigation.\n";
+    cout << "\n Watch out for the river!";
+    tip = false;
+}
+
+int main()
+{
+    int mapX, mapY, positionX, positionY, bugAmount, energy;
+    int choice;
+    cout << "Welcome to the life of a Frog! Try blinking and seeing the world around you. \n";
+    cout << "Choose the size of the world you see. Do not lie! \n";
+    cout << "1 - Small blurred field of grass surrounded by shifting currents.\n";
+    cout << "2 - Middle-aged brushes outline the dazzling sky above you. \n";
+    cout << "3 - A grove of large wooden stumps. You cannot see what lies beyond them.\n";
+    cin >> choice;
+    vector<GameMode> gameMod;
+    initializeGameModes(gameMod);
+    switch (choice)
+    {
+    case 1:
+        mapX = gameMod[0].mapX;
+        mapY = gameMod[0].mapY;
+        positionX = gameMod[0].positionX;
+        positionY = gameMod[0].positionY;
+        bugAmount = gameMod[0].bugAmount;
+        energy = gameMod[0].energy;
+        break;
+    case 2:
+        mapX = gameMod[1].mapX;
+        mapY = gameMod[1].mapY;
+        positionX = gameMod[1].positionX;
+        positionY = gameMod[1].positionY;
+        bugAmount = gameMod[1].bugAmount;
+        energy = gameMod[1].energy;
+        break;
+    case 3:
+        mapX = gameMod[2].mapX;
+        mapY = gameMod[2].mapY;
+        positionX = gameMod[2].positionX;
+        positionY = gameMod[2].positionY;
+        bugAmount = gameMod[2].bugAmount;
+        energy = gameMod[2].energy;
+        break;
+    }
+
+    bool** yard;
+    generateMap(yard, mapX, mapY);
+    determineFrog(yard, positionX, positionY);
+
+    vector<Bug> bugs;
+    intializeBugs(yard, bugs, bugAmount, mapX, mapY);
+
+    cout << "Visualising Area\n\n";
+    drawMap(yard, mapX, mapY);
+    cout << "\nCongratulations! You are Frog, the number one, the central one, yes, You!" << "\nBut you are not the only one. Devour other lifeforms like you to continue what you are doing.\n";
+
+    int numberOfTurns = 0;
+    char direction;
+    cout << "\nType I to move northwards.\n";
+    cout << "Type L to move eastwards.\n";
+    cout << "Type J to move westwards.\n";
+    cout << "Type K to move southwards.\n";
+
+    while (energy > 0)
+    {
+        for (int i = 0; i < bugs.size(); i++) {
+            if (bugs[i].xBugPosition == positionX && bugs[i].yBugPosition == positionY) {
+                bugs.erase(bugs.begin() + i);
+                rewardDevour(numberOfTurns, energy);
+                bugGenerator(yard, bugs, mapX, mapY);
+                }
+            }
+
+
+        if (positionX >= 0 && positionX < mapX && positionY >=0 && positionY < mapY) {
+
+            cout << "\nMove or Jump?\n";
+            cout << "Type O to jump in the direction you are facing! \n";
+            cin >> direction;
+            direction = toupper(direction);
+
+            if (direction == 'I') {
+                moveNorth(yard, positionX, positionY, energy, numberOfTurns, mapX, mapY);
+
+            }
+
+            if (direction == 'L') {
+                moveEast(yard, positionX, positionY, energy, numberOfTurns, mapX, mapY);
+            }
+
+            if (direction == 'J') {
+                moveWest(yard, positionX, positionY, energy, numberOfTurns, mapX, mapY);
+            }
+
+            if (direction == 'K') {
+                moveSouth(yard, positionX, positionY, energy, numberOfTurns, mapX, mapY);
+            }
+
+            if (direction == 'O') {
+                jump(yard, positionX, positionY, energy, numberOfTurns, mapX, mapY);
+                drawMap(yard, mapX, mapY);
+                if (tip) {
+                    jumpTip();
+                }
+            }
+
+            if (energy < 3) {
+                cout << "Your body is weakening, you must eat!\n";
+        }
+
+        }
+        else {
+            energy == 0;
+            cout << "\nYou have arrived at the river." << "\nThe giant vulpture catches you and takes you into the sky!" << "\nYou need to eat more and become more powerful than that tongue - nibbling bird!\n";
+            break;
+        }
+
+
+    }
+    cout << "You have run out of energy. The sweet release of death saves you from this torment.\n";
+    cout << "Total number of turns played: " << numberOfTurns << '\n';
+
+
+    return 0;
+}
