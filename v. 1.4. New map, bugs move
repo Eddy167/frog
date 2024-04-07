@@ -1,0 +1,377 @@
+#include <iostream>
+#include <string>
+#include <cstdlib>
+#include <ctime>
+#include <vector>
+#include <map>
+#include <random>
+using namespace std;
+
+const char background_char = '-';
+const char bug_char = 'B';
+const char frog_char = 'F';
+void initializeMap(char** yard, int x, int y) {
+    for (int i = 0; i < x; i++) {
+        for (int j = 0; j < y; j++) {
+            yard[i][j] = false;
+        }
+    }
+}
+void generateMap(char** &yard, int x, int y) {
+    yard = new char* [x];
+    for (int i = 0; i < x; i++) {
+        yard[i] = new char[y];
+    }
+    initializeMap(yard, x, y);
+}
+void drawMap(char** yard, int x, int y, int frog_positionX, int frog_positionY) {
+    for (int i = 0; i < x; i++) {
+        for (int j = 0; j < y; j++) {
+            if (i == frog_positionX && j == frog_positionY) {
+                cout << frog_char;
+            }
+            else if (yard[i][j]) {
+                cout << bug_char;
+            }
+            else {
+                cout << background_char;
+            }
+            if (j < y - 1) {
+                cout << " ";
+            }
+        }
+        cout << "\n";
+    }
+}
+
+struct GameMode {
+    int mapX;
+    int mapY;
+    int frog_positionX;
+    int frog_positionY;
+    int bugAmount; 
+    int energy;
+};
+map<string, GameMode> initializeGameModes() {
+    map<string, GameMode> gameModes;
+    gameModes["easyMod"] = { 9, 9, 4, 4, 3, 8 }; // mapX, mapY, frog_positionX, frog_positionY, bugAmount, energy
+    gameModes["mediumMod"] = { 15, 15, 7, 7, 9, 10 };
+    gameModes["hardMod"] = { 21, 21, 10, 10, 12, 14 };
+    return gameModes;
+}
+
+struct Bug {
+    int xBugPosition;
+    int yBugPosition;
+};
+void intializeBugs(char** yard, vector<Bug>& bugs, int bugAmount, int mapX, int mapY, int frog_positionX, int frog_positionY) {
+    srand(static_cast<signed int>(time(0)));
+    bugs.reserve(bugAmount);
+    int initializedBugs = 0; 
+    while (initializedBugs < bugAmount) {
+        int bug_randX = rand() % mapX;
+        int bug_randY = rand() % mapY;
+        if (!(bug_randX == frog_positionX && bug_randY == frog_positionY)) { 
+            yard[bug_randX][bug_randY] = true;
+            bugs.push_back({ bug_randX, bug_randY });
+            initializedBugs++;
+        }
+        
+    }
+}
+void rewardDevour(int& x, int& y) {
+    cout << "\nYou have devoured another lifeform. Digesting. Time passes.";
+    ++x;
+    cout << "\nEnergy gained!";
+    y += 4;
+}
+void bugGenerator(char** yard, vector<Bug>& bugs, int x, int y, int frog_positionX, int frog_positionY) {
+    int bug_randX, bug_randY;
+    do {
+    bug_randX = rand() % x;
+    bug_randY = rand() % y;
+    } while (bug_randX == frog_positionX && bug_randY == frog_positionY);
+    yard[bug_randX][bug_randY] = true;
+    bugs.push_back({ bug_randX, bug_randY });
+}
+void bugsMove(char** yard, vector<Bug>& bugs, int mapX, int mapY) {
+    if (bugs.empty()) return; 
+
+    std::random_device rd; 
+    std::mt19937 gen(rd()); 
+    std::uniform_int_distribution<> dis(0, bugs.size() - 1); 
+
+    srand(static_cast<signed int>(time(0)));
+
+    int numBugsToMove = rand() % (bugs.size() + 1); 
+    for (int i = 0; i < numBugsToMove; ++i) {
+        int randomIndex = dis(gen); 
+        Bug& bug = bugs[randomIndex];
+
+        int bugDirection = rand() % 4; 
+
+        switch (bugDirection) {
+        case 0: // move north
+            if (bug.xBugPosition > 0) { 
+                yard[bug.xBugPosition][bug.yBugPosition] = false;
+                bug.xBugPosition -= 1;
+                yard[bug.xBugPosition][bug.yBugPosition] = bug_char;
+            }
+            break;
+        case 1: // move east
+            if (bug.yBugPosition < mapY - 1) { 
+                yard[bug.xBugPosition][bug.yBugPosition] = false;
+                bug.yBugPosition += 1;
+                yard[bug.xBugPosition][bug.yBugPosition] = bug_char;
+            }
+            break;
+        case 2: // move west
+            if (bug.yBugPosition > 0) { 
+                yard[bug.xBugPosition][bug.yBugPosition] = false;
+                bug.yBugPosition -= 1;
+                yard[bug.xBugPosition][bug.yBugPosition] = bug_char;
+            }
+            break;
+        case 3: // move south
+            if (bug.xBugPosition < mapX - 1) { 
+                yard[bug.xBugPosition][bug.yBugPosition] = false;
+                bug.xBugPosition += 1;
+                yard[bug.xBugPosition][bug.yBugPosition] = bug_char;
+            }
+            break;
+        }
+    }
+}
+
+
+void determineFrog(char** yard, int x, int y) {
+    yard[x][y] = true;
+}
+
+char lastMoveDirection = 'I';
+void updateLastMoveDirection(char direction) {
+    lastMoveDirection = direction;
+}
+void moveNorth(char** yard, int& x, int& y, int& energy, int& numberOfTurns, int& mapX, int& mapY){
+    if (x > 0) { 
+        yard[x][y] = false;
+        x = x - 1;
+        yard[x][y] = frog_char;
+        cout << "\nIt is windy, the sun is on your right. Time passed, you have used energy.\n";
+        --energy;
+        ++numberOfTurns;
+        updateLastMoveDirection('I');
+    }
+    else {
+        cout << "\nYou cannot move further north. The bird is watching you.";
+        cout << "Try a different direction.\n";
+    }
+    drawMap(yard, mapX, mapY, x, y);
+}
+void moveEast(char** yard, int& x, int& y, int& energy, int& numberOfTurns, int& mapX, int& mapY) {
+    yard[x][y] = false;
+    y = y + 1;
+    yard[x][y] = true;
+    cout << "\nIt is warm, you are facing sun. Time passed, you have used energy.\n";
+    --energy;
+    ++numberOfTurns;
+    updateLastMoveDirection('L');
+    drawMap(yard, mapX, mapY, x, y);
+}
+void moveWest(char** yard, int& x, int& y, int& energy, int& numberOfTurns, int& mapX, int& mapY) {
+    yard[x][y] = false;
+    y = y - 1;
+    yard[x][y] = true;
+    cout << "\nIt is cold, you are turned from the sun. Time passed, you have used energy.\n";
+    --energy;
+    ++numberOfTurns;
+    updateLastMoveDirection('J');
+    drawMap(yard, mapX, mapY, x, y);
+}
+void moveSouth(char** yard, int& x, int& y, int& energy, int& numberOfTurns, int& mapX, int& mapY) {
+    if (x < mapX - 1) {
+    yard[x][y] = false;
+    x = x + 1;
+    yard[x][y] = true;
+    cout << "\nIt is windy, the sun is on your left. Time passed, you have used energy.\n";
+    --energy;
+    ++numberOfTurns;
+    updateLastMoveDirection('K');
+    }
+    else {
+        cout << "\nYou cannot move further south. The bird is watching you. ";
+        cout << "Try a different direction.\n";
+    }
+    drawMap(yard, mapX, mapY, x, y);
+}
+void jump(char** yard, int& frog_positionX, int& frog_positionY, int& energy, int& numberOfTurns, int& mapX, int& mapY) {
+    energy = energy - 2;
+    ++numberOfTurns;
+    switch (lastMoveDirection) {
+        case 'I':
+            if (frog_positionX > 2) {
+                yard[frog_positionX][frog_positionY] = false;
+                frog_positionX = frog_positionX - 3;
+                yard[frog_positionX][frog_positionY] = true;
+                cout << "\nIt is windy, the sun is on your right. Time passed, you have used energy.\n";
+                updateLastMoveDirection('I');
+                }
+                else {
+                    cout << "\nYou cannot jump further north. The bird is watching you.";
+                    cout << " Try a different direction.\n";
+                }
+            break;
+        case 'L':
+            yard[frog_positionX][frog_positionY] = false;
+            frog_positionY = frog_positionY + 3;
+            yard[frog_positionX][frog_positionY] = true;
+            cout << "\nIt is warm, you are facing sun. Time passed, you have used energy.\n";
+            updateLastMoveDirection('L');
+            break;
+        case 'J':
+            yard[frog_positionX][frog_positionY] = false;
+            frog_positionY = frog_positionY - 3;
+            yard[frog_positionX][frog_positionY] = true;
+            cout << "\nIt is cold, you are turned from the sun. Time passed, you have used energy.\n";
+            updateLastMoveDirection('J');
+            break;
+        case 'K':
+            if (frog_positionX < mapX - 2) {
+                yard[frog_positionX][frog_positionY] = false;
+                frog_positionX = frog_positionX + 3;
+                yard[frog_positionX][frog_positionY] = true;
+                cout << "\nIt is windy, the sun is on your left. Time passed, you have used energy.\n";
+                updateLastMoveDirection('K');
+            }
+            else {
+                cout << "\nYou cannot jump further south. The bird is watching you. ";
+                cout << "Try a different direction.\n";
+            }
+            break;
+        }
+}
+char tip = true;
+void jumpTip() {
+    cout << "Woah, what a jump! By jumping you conserve your energy and can cover great distances,\n but keep in mind that jumping requires much more navigation.\n";
+    cout << "\n Watch out for the river!";
+    tip = false;
+}
+
+int main()
+{
+    int mapX, mapY, frog_positionX, frog_positionY, bugAmount, energy;
+    int choice;
+    cout << "Welcome to the life of a Frog! Try blinking and seeing the world around you. \n";
+    cout << "Choose the size of the world you see. Do not lie! \n";
+    cout << "1 - Small blurred field of grass surrounded by shifting currents.\n";
+    cout << "2 - Middle-aged brushes outline the dazzling sky above you. \n";
+    cout << "3 - A grove of large wooden stumps. You cannot see what lies beyond them.\n";
+    cin >> choice;
+
+    map<string, GameMode> gameModes = initializeGameModes();
+    GameMode chosenMode;
+    switch (choice)
+    {
+    case 1:
+        chosenMode = gameModes["easyMod"];
+        break;
+    case 2:
+        chosenMode = gameModes["mediumMod"];
+        break;
+    case 3:
+        chosenMode = gameModes["hardMod"];
+        break;
+    }
+    mapX = chosenMode.mapX;
+    mapY = chosenMode.mapY;
+    frog_positionX = chosenMode.frog_positionX;
+    frog_positionY = chosenMode.frog_positionY;
+    bugAmount = chosenMode.bugAmount;
+    energy = chosenMode.energy;
+
+    char** yard;
+    generateMap(yard, mapX, mapY);
+    determineFrog(yard, frog_positionX, frog_positionY);
+
+    vector<Bug> bugs;
+    intializeBugs(yard, bugs, bugAmount, mapX, mapY, frog_positionX, frog_positionY);
+
+    cout << "Visualising Area\n\n";
+    drawMap(yard, mapX, mapY, frog_positionX, frog_positionY);
+    cout << "\nCongratulations! You are Frog, the number one, the central one, yes, You!" << "\nBut you are not the only one. Devour other lifeforms like you to continue what you are doing.\n";
+
+    int numberOfTurns = 0;
+    int previousNumberOfTurns = numberOfTurns;
+    char direction;
+    cout << "\nType I to move northwards.\n";
+    cout << "Type L to move eastwards.\n";
+    cout << "Type J to move westwards.\n";
+    cout << "Type K to move southwards.\n";
+
+    while (energy > 0)
+    {
+        for (int i = 0; i < bugs.size(); i++) {
+            if (bugs[i].xBugPosition == frog_positionX && bugs[i].yBugPosition == frog_positionY) {
+                bugs.erase(bugs.begin() + i); 
+                rewardDevour(numberOfTurns, energy);
+                bugGenerator(yard, bugs, mapX, mapY, frog_positionX, frog_positionY);
+                i--; 
+            }
+        }
+
+
+        if (frog_positionX >= 0 && frog_positionX < mapX && frog_positionY >=0 && frog_positionY < mapY) {
+
+            cout << "\nMove or Jump?\n";
+            cout << "Type O to jump in the direction you are facing! \n";
+            cin >> direction;
+            direction = toupper(direction);
+
+            if (direction == 'I') {
+                moveNorth(yard, frog_positionX, frog_positionY, energy, numberOfTurns, mapX, mapY);
+            }
+
+            if (direction == 'L') {
+                moveEast(yard, frog_positionX, frog_positionY, energy, numberOfTurns, mapX, mapY);
+            }
+
+            if (direction == 'J') {
+                moveWest(yard, frog_positionX, frog_positionY, energy, numberOfTurns, mapX, mapY);
+            }
+
+            if (direction == 'K') {
+                moveSouth(yard, frog_positionX, frog_positionY, energy, numberOfTurns, mapX, mapY);
+            }
+
+            if (direction == 'O') {
+                jump(yard, frog_positionX, frog_positionY, energy, numberOfTurns, mapX, mapY);
+                drawMap(yard, mapX, mapY, frog_positionX, frog_positionY);
+                if (tip) {
+                    jumpTip();
+                }
+            }
+
+            if (energy < 3) {
+                cout << "Your body is weakening, you must eat!\n";
+        }
+
+        }
+        else {
+            energy == 0;
+            cout << "\nYou have arrived at the river." << "\nThe giant vulpture catches you and takes you into the sky!" << "\nYou need to eat more and become more powerful than that tongue - nibbling bird!\n";
+            break;
+        }
+        
+        if (numberOfTurns == previousNumberOfTurns + 2){
+            bugsMove (yard, bugs, mapX, mapY);
+            previousNumberOfTurns = numberOfTurns;
+        } 
+
+
+    }
+    cout << "You have run out of energy. The sweet release of death saves you from this torment.\n";
+    cout << "Total number of turns played: " << numberOfTurns << " Share it with Eduardas now!\n";
+
+
+    return 0;
+}
