@@ -95,45 +95,40 @@ void bugGenerator(char** yard, vector<Bug>& bugs, int x, int y, int frog_positio
     bugs.push_back({ bug_randX, bug_randY });
 }
 void bugsMove(char** yard, vector<Bug>& bugs, int mapX, int mapY) {
-    if (bugs.empty()) return; 
-
-    std::random_device rd; 
-    std::mt19937 gen(rd()); 
-    std::uniform_int_distribution<> dis(0, bugs.size() - 1); 
+    if (bugs.empty()) return;
 
     srand(static_cast<signed int>(time(0)));
-
-    int numBugsToMove = rand() % (bugs.size() + 1); 
+    int numBugsToMove = rand() % (bugs.size() + 1);
     for (int i = 0; i < numBugsToMove; ++i) {
-        int randomIndex = dis(gen); 
+        int randomIndex = rand() % bugs.size();
         Bug& bug = bugs[randomIndex];
 
-        int bugDirection = rand() % 4; 
+        int bugDirection = rand() % 4;
 
         switch (bugDirection) {
         case 0: // move north
-            if (bug.xBugPosition > 0) { 
+            if (bug.xBugPosition > 0) {
                 yard[bug.xBugPosition][bug.yBugPosition] = false;
                 bug.xBugPosition -= 1;
                 yard[bug.xBugPosition][bug.yBugPosition] = bug_char;
             }
             break;
         case 1: // move east
-            if (bug.yBugPosition < mapY - 1) { 
+            if (bug.yBugPosition < mapY - 1) {
                 yard[bug.xBugPosition][bug.yBugPosition] = false;
                 bug.yBugPosition += 1;
                 yard[bug.xBugPosition][bug.yBugPosition] = bug_char;
             }
             break;
         case 2: // move west
-            if (bug.yBugPosition > 0) { 
+            if (bug.yBugPosition > 0) {
                 yard[bug.xBugPosition][bug.yBugPosition] = false;
                 bug.yBugPosition -= 1;
                 yard[bug.xBugPosition][bug.yBugPosition] = bug_char;
             }
             break;
         case 3: // move south
-            if (bug.xBugPosition < mapX - 1) { 
+            if (bug.xBugPosition < mapX - 1) {
                 yard[bug.xBugPosition][bug.yBugPosition] = false;
                 bug.xBugPosition += 1;
                 yard[bug.xBugPosition][bug.yBugPosition] = bug_char;
@@ -294,6 +289,7 @@ int main()
     determineFrog(yard, frog_positionX, frog_positionY);
 
     vector<Bug> bugs;
+    vector<int> bugsToRemove;
     intializeBugs(yard, bugs, bugAmount, mapX, mapY, frog_positionX, frog_positionY);
 
     cout << "Visualising Area\n\n";
@@ -310,14 +306,25 @@ int main()
 
     while (energy > 0)
     {
-        for (int i = 0; i < bugs.size(); i++) {
+
+        for (int i = bugsToRemove.size() - 1; i >= 0; --i) {
             if (bugs[i].xBugPosition == frog_positionX && bugs[i].yBugPosition == frog_positionY) {
-                bugs.erase(bugs.begin() + i); 
+                int indexToRemove = bugsToRemove[i];
+                yard[bugs[indexToRemove].xBugPosition][bugs[indexToRemove].yBugPosition] = false;
+                bugs.erase(bugs.begin() + indexToRemove);
                 rewardDevour(numberOfTurns, energy);
                 bugGenerator(yard, bugs, mapX, mapY, frog_positionX, frog_positionY);
                 i--; 
             }
         }
+    // for (int i = bugs.size() - 1; i >= 0; --i) {
+    //    if (bugs[i].xBugPosition == frog_positionX && bugs[i].yBugPosition == frog_positionY) {
+    //        yard[bugs[i].xBugPosition][bugs[i].yBugPosition] = false;
+   //         bugs.erase(bugs.begin() + i);
+   //         rewardDevour(numberOfTurns, energy);
+  //          bugGenerator(yard, bugs, mapX, mapY, frog_positionX, frog_positionY);
+  //      }
+ //   }
 
 
         if (frog_positionX >= 0 && frog_positionX < mapX && frog_positionY >=0 && frog_positionY < mapY) {
@@ -362,7 +369,7 @@ int main()
             break;
         }
         
-        if (numberOfTurns == previousNumberOfTurns + 2){
+        if (numberOfTurns == previousNumberOfTurns + 1){
             bugsMove (yard, bugs, mapX, mapY);
             previousNumberOfTurns = numberOfTurns;
         } 
